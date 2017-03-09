@@ -38,7 +38,9 @@ import org.apache.ibatis.io.Resources;
 public class UnpooledDataSource implements DataSource {
 
     private ClassLoader driverClassLoader;
+    // 驱动连接属性
     private Properties driverProperties;
+    // 所有已注册的驱动，仅仅用于识别驱动在DriverManager中是否已经被加载进来了
     private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<String, Driver>();
 
     private String driver;
@@ -47,9 +49,11 @@ public class UnpooledDataSource implements DataSource {
     private String password;
 
     private Boolean autoCommit;
+    // 默认事务隔离级别
     private Integer defaultTransactionIsolationLevel;
 
     static {
+        // 静态代码块，当类加载的时候，就从DriverManager中获取所有的驱动信息，放到当前维护的Map中
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {
             Driver driver = drivers.nextElement();
@@ -88,6 +92,9 @@ public class UnpooledDataSource implements DataSource {
         this.driverProperties = driverProperties;
     }
 
+    /**
+     * UnpooledDataSource 的 getConnection() 实现
+     */
     @Override
     public Connection getConnection() throws SQLException {
         return doGetConnection(username, password);
@@ -182,7 +189,15 @@ public class UnpooledDataSource implements DataSource {
         this.defaultTransactionIsolationLevel = defaultTransactionIsolationLevel;
     }
 
+    /**
+     * 获取数据库连接对象
+     * @param username
+     * @param password
+     * @return
+     * @throws SQLException
+     */
     private Connection doGetConnection(String username, String password) throws SQLException {
+        //封装 username 和 password 成 properties
         Properties props = new Properties();
         if (driverProperties != null) {
             props.putAll(driverProperties);
@@ -196,13 +211,27 @@ public class UnpooledDataSource implements DataSource {
         return doGetConnection(props);
     }
 
+    /**
+     * 获取数据库连接对象
+     * @param properties
+     * @return
+     * @throws SQLException
+     */
     private Connection doGetConnection(Properties properties) throws SQLException {
+        // 初始化驱动
         initializeDriver();
+        // 从DriverManager中获取连接，获取新的Connection对象
         Connection connection = DriverManager.getConnection(url, properties);
+        // 配置连接信息，自动提交以及事务隔离级别
         configureConnection(connection);
         return connection;
     }
 
+    /**
+     *   判断driver驱动是否已经加载到内存中，如果还没有加载，则会动态地加载driver类，
+     *   并实例化一个Driver对象，使用DriverManager.registerDriver()方法将其注册到内存中，以供后续使用。
+     * @throws SQLException
+     */
     private synchronized void initializeDriver() throws SQLException {
         if (!registeredDrivers.containsKey(driver)) {
             Class<?> driverType;
@@ -210,6 +239,9 @@ public class UnpooledDataSource implements DataSource {
                 if (driverClassLoader != null) {
                     driverType = Class.forName(driver, true, driverClassLoader);
                 } else {
+                    // Resources为MyBatis内置的资源工具类，该方法依次尝试从多个ClassLoader中获取Class类，
+                    // 顺序为：配置的classLoader，默认的defaultClassLoader，
+                    // 当前线程的getContextClassLoader，当前类的getClass().getClassLoader()，系统的systemClassLoader
                     driverType = Resources.classForName(driver);
                 }
                 // DriverManager requires the driver to be loaded via the system ClassLoader.
@@ -223,11 +255,18 @@ public class UnpooledDataSource implements DataSource {
         }
     }
 
+    /**
+     * 设置是否自动提交autoCommit和隔离级别isolationLevel。
+     * @param conn
+     * @throws SQLException
+     */
     private void configureConnection(Connection conn) throws SQLException {
         if (autoCommit != null && autoCommit != conn.getAutoCommit()) {
+            // 如果已开启了事务，则可以将自动提交关闭
             conn.setAutoCommit(autoCommit);
         }
         if (defaultTransactionIsolationLevel != null) {
+            // 设置事务隔离级别
             conn.setTransactionIsolation(defaultTransactionIsolationLevel);
         }
     }

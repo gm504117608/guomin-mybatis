@@ -27,26 +27,38 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * 这个类通过名字就可以看出 是用来注册Mapper接口与获取生成代理类实例的工具类
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss
  */
 public class MapperRegistry {
-
+    //全局配置文件对象
     private final Configuration config;
+    //一个HashMap Key是mapper的类型对象, Value是MapperProxyFactory对象
+    //这个MapperProxyFactory是创建Mapper代理对象的工厂
     private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<Class<?>, MapperProxyFactory<?>>();
 
     public MapperRegistry(Configuration config) {
         this.config = config;
     }
 
+    /**
+     * 获取生成的代理对象
+     * @param type
+     * @param sqlSession
+     * @param <T>
+     * @return
+     */
     @SuppressWarnings("unchecked")
     public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+        //通过Mapper的接口类型 去Map当中查找 如果为空就抛异常
         final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
         if (mapperProxyFactory == null) {
             throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
         }
         try {
+            //否则创建一个当前接口的代理对象 并且传入sqlSession
             return mapperProxyFactory.newInstance(sqlSession);
         } catch (Exception e) {
             throw new BindingException("Error getting mapper instance. Cause: " + e, e);
@@ -57,6 +69,9 @@ public class MapperRegistry {
         return knownMappers.containsKey(type);
     }
 
+    /**
+     * 注册Mapper接口
+     */
     public <T> void addMapper(Class<T> type) {
         if (type.isInterface()) {
             if (hasMapper(type)) {
@@ -87,6 +102,7 @@ public class MapperRegistry {
     }
 
     /**
+     * 通过包名扫描下面所有接口
      * @since 3.2.2
      */
     public void addMappers(String packageName, Class<?> superType) {

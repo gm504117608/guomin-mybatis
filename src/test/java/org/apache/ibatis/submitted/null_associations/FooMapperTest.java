@@ -33,14 +33,15 @@ public class FooMapperTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         try {
-            final SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsReader(SQL_MAP_CONFIG));
+            final Reader reader = Resources.getResourceAsReader(SQL_MAP_CONFIG);
+            final SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(reader);
             session = factory.openSession();
             Connection conn = session.getConnection();
             ScriptRunner runner = new ScriptRunner(conn);
             runner.setLogWriter(null);
             runner.setErrorLogWriter(null);
-            Reader reader = Resources.getResourceAsReader("org/apache/ibatis/submitted/null_associations/create-schema-mysql.sql");
-            runner.runScript(reader);
+            Reader readers = Resources.getResourceAsReader("org/apache/ibatis/submitted/null_associations/create-schema-mysql.sql");
+            runner.runScript(readers);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

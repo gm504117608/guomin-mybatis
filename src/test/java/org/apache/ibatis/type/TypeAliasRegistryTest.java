@@ -63,7 +63,9 @@ public class TypeAliasRegistryTest {
     public void shouldBeAbleToRegisterNewTypeIfRegisteredTypeIsNull() {
         TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
         typeAliasRegistry.registerAlias("foo", (Class<?>) null);
+//        typeAliasRegistry.resolveAlias("foo").getName(); // 出现 NullPointerException 异常
         typeAliasRegistry.registerAlias("foo", String.class);
+        System.out.println(typeAliasRegistry.resolveAlias("foo").getName());
     }
 
 }

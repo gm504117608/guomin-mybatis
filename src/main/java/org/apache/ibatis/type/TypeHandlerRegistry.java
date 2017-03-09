@@ -35,6 +35,8 @@ import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.Resources;
 
 /**
+ * typeHandler注册管理类
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -275,9 +277,14 @@ public final class TypeHandlerRegistry {
 
     // Only handler
 
+    /**
+     * 只配置了typeHandler, 没有配置jdbcType 或者javaType
+     */
     @SuppressWarnings("unchecked")
     public <T> void register(TypeHandler<T> typeHandler) {
         boolean mappedTypeFound = false;
+        //在自定义typeHandler的时候，可以加上注解MappedTypes 去指定关联的javaType
+        //因此，此处需要扫描MappedTypes注解
         MappedTypes mappedTypes = typeHandler.getClass().getAnnotation(MappedTypes.class);
         if (mappedTypes != null) {
             for (Class<?> handledType : mappedTypes.value()) {
@@ -300,13 +307,16 @@ public final class TypeHandlerRegistry {
         }
     }
 
+    /**
+     * 配置了typeHandlerhe和javaType
+     */
     // java type + handler
-
     public <T> void register(Class<T> javaType, TypeHandler<? extends T> typeHandler) {
         register((Type) javaType, typeHandler);
     }
 
     private <T> void register(Type javaType, TypeHandler<? extends T> typeHandler) {
+        //扫描注解 MappedJdbcTypes
         MappedJdbcTypes mappedJdbcTypes = typeHandler.getClass().getAnnotation(MappedJdbcTypes.class);
         if (mappedJdbcTypes != null) {
             for (JdbcType handledJdbcType : mappedJdbcTypes.value()) {
@@ -324,12 +334,18 @@ public final class TypeHandlerRegistry {
         register(javaTypeReference.getRawType(), handler);
     }
 
+    /**
+     * typeHandler、javaType、jdbcType都配置了
+     */
     // java type + jdbc type + handler
-
     public <T> void register(Class<T> type, JdbcType jdbcType, TypeHandler<? extends T> handler) {
         register((Type) type, jdbcType, handler);
     }
 
+    /**
+     * 注册typeHandler的核心方法
+     * 就是向Map新增数据而已
+     */
     private void register(Type javaType, JdbcType jdbcType, TypeHandler<?> handler) {
         if (javaType != null) {
             Map<JdbcType, TypeHandler<?>> map = TYPE_HANDLER_MAP.get(javaType);
@@ -401,7 +417,9 @@ public final class TypeHandlerRegistry {
     }
 
     // scan
-
+    /**
+     * 根据指定的pacakge去扫描自定义的typeHander，然后注册
+     */
     public void register(String packageName) {
         ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
         resolverUtil.find(new ResolverUtil.IsA(TypeHandler.class), packageName);
@@ -417,6 +435,7 @@ public final class TypeHandlerRegistry {
     // get information
 
     /**
+     * 通过configuration对象可以获取已注册的所有typeHandler
      * @since 3.2.2
      */
     public Collection<TypeHandler<?>> getTypeHandlers() {

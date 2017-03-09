@@ -95,15 +95,21 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  */
 public class Configuration {
 
+    // environment表示MyBatis配置的数据源和事务管理
     protected Environment environment;
 
     protected boolean safeRowBoundsEnabled;
     protected boolean safeResultHandlerEnabled = true;
     protected boolean mapUnderscoreToCamelCase;
+    // 当启用时，有延迟加载属性的对象在被调用时将会完全加载任意属性。否则，每种属性将会按需要加载。
     protected boolean aggressiveLazyLoading;
+    // 允许或不允许多种结果集从一个单独的语句中返回（需要适合的驱动）。
     protected boolean multipleResultSetsEnabled = true;
+    // 允许JDBC支持生成的键。需要适合的驱动。如果设置为true则这个设置强制生成的键被使用，尽管一些驱动拒绝兼容但仍然有效（比如Derby）。
     protected boolean useGeneratedKeys;
+    // 使用列标签代替列名。不同的驱动在这方便表现不同。参考驱动文档或充分测试两种方法来决定所使用的驱动。
     protected boolean useColumnLabel = true;
+    // 这个配置使全局的映射器启用或禁用缓存。
     protected boolean cacheEnabled = true;
     protected boolean callSettersOnNulls;
     protected boolean useActualParamName = true;
@@ -118,14 +124,16 @@ public class Configuration {
     protected Integer defaultStatementTimeout;
     protected Integer defaultFetchSize;
     protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
+    // 指定MyBatis如何自动映射列到字段/属性。PARTIAL只会自动映射简单，没有嵌套的结果。FULL会自动映射任意复杂的结果（嵌套的或其他情况）。
     protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
     protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
+    // properties里配置的属性将被存放在Configuration的variables变量里，供Mybatis使用。此外在配置文件中，也可以使用这些属性，用来对配置项实现动态配置。
     protected Properties variables = new Properties();
     protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
     protected ObjectFactory objectFactory = new DefaultObjectFactory();
     protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
-
+    // 全局启用或禁用延迟加载。当禁用时，所有关联对象都会即时加载。
     protected boolean lazyLoadingEnabled = false;
     protected ProxyFactory proxyFactory = new JavassistProxyFactory(); // #224 Using internal Javassist instead of OGNL
 
@@ -138,9 +146,13 @@ public class Configuration {
      */
     protected Class<?> configurationFactory;
 
+    // Mappers用于告诉Mybatis去哪里寻找sql映射文件。
     protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+    // MyBatis的插件集合
     protected final InterceptorChain interceptorChain = new InterceptorChain();
+    // 无论是MyBatis在预处理语句中设置一个参数，还是从结果集中取出一个值时，类型处理器被用来将获取的值以合适的方式转换成Java类型。
     protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
+    // 别名是为Java类型命名一个短的名字。它只用在XML配置文件里，用来减少类完全限定名的多余部分。例如在配置文件里需要使用domain.blog.Author的地方可以简单的使用Author替换。
     protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
     protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 

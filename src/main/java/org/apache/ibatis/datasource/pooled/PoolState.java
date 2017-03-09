@@ -19,22 +19,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 连接池的状态信息
  * @author Clinton Begin
  */
 public class PoolState {
 
     protected PooledDataSource dataSource;
 
-    protected final List<PooledConnection> idleConnections = new ArrayList<PooledConnection>();
-    protected final List<PooledConnection> activeConnections = new ArrayList<PooledConnection>();
-    protected long requestCount = 0;
-    protected long accumulatedRequestTime = 0;
-    protected long accumulatedCheckoutTime = 0;
-    protected long claimedOverdueConnectionCount = 0;
-    protected long accumulatedCheckoutTimeOfOverdueConnections = 0;
-    protected long accumulatedWaitTime = 0;
-    protected long hadToWaitCount = 0;
-    protected long badConnectionCount = 0;
+    protected final List<PooledConnection> idleConnections = new ArrayList<PooledConnection>(); // 空闲连接集合
+    protected final List<PooledConnection> activeConnections = new ArrayList<PooledConnection>(); // 活动连接集合
+    protected long requestCount = 0; // 请求次数
+    protected long accumulatedRequestTime = 0; // 请求获得连接所需时间
+    protected long accumulatedCheckoutTime = 0; // 统计连接使用时间
+    protected long claimedOverdueConnectionCount = 0; // 统计过期回收连接数
+    protected long accumulatedCheckoutTimeOfOverdueConnections = 0; // 统计连接过期使用时间
+    protected long accumulatedWaitTime = 0; // 统计获取连接需要等待的时间
+    protected long hadToWaitCount = 0; // 统计获取连接需要等待的次数
+    protected long badConnectionCount = 0; // 统计无效连接个数
 
     public PoolState(PooledDataSource dataSource) {
         this.dataSource = dataSource;

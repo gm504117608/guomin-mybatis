@@ -19,8 +19,10 @@ import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.parsing.PropertyParser;
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.apache.ibatis.submitted.basetest.Mapper;
 import org.apache.ibatis.type.JdbcType;
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
@@ -65,6 +67,9 @@ public class ConfigurationTest {
         Reader reader = Resources.getResourceAsReader("org/apache/ibatis/submitted/global_variables_defaults/mybatis-config.xml");
         SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(reader, props);
         Configuration configuration = factory.getConfiguration();
+        SqlSession session = factory.openSession();
+        // Mapper接口通过MapperProxyFactory动态代理生成的类
+        Mapper mapper = session.getMapper(Mapper.class);
 
         Assert.assertThat(configuration.getJdbcTypeForNull(), Is.is(JdbcType.CHAR));
         Assert.assertThat(((UnpooledDataSource) configuration.getEnvironment().getDataSource()).getUrl(),

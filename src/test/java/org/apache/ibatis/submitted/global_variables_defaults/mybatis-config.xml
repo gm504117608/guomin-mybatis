@@ -45,4 +45,8 @@
         <property name="${productName.hsql:HSQL Database Engine}" value="hsql"/>
     </databaseIdProvider>
 
+    <mappers>
+        <mapper class="org.apache.ibatis.submitted.basetest.Mapper"/>
+    </mappers>
+
 </configuration>

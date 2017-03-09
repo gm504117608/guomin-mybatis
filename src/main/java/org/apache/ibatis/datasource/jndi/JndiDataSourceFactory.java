@@ -47,7 +47,7 @@ public class JndiDataSourceFactory implements DataSourceFactory {
             } else {
                 initCtx = new InitialContext(env);
             }
-
+            //从JNDI上下文中找到DataSource并返回
             if (properties.containsKey(INITIAL_CONTEXT)
                     && properties.containsKey(DATA_SOURCE)) {
                 Context ctx = (Context) initCtx.lookup(properties.getProperty(INITIAL_CONTEXT));

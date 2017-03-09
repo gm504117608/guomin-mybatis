@@ -28,6 +28,8 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * 实现了JDK动态代理的接口 InvocationHandler
+ * 在invoke方法中实现了代理方法调用的细节
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -35,7 +37,11 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 
     private static final long serialVersionUID = -6424540398559729838L;
     private final SqlSession sqlSession;
+    //Mapper接口的类型对象
     private final Class<T> mapperInterface;
+    //Mapper接口中的每个方法都会生成一个MapperMethod对象, methodCache维护着他们的对应关系
+    //这个methodCache是在MapperProxyFactory中持有的，MapperProxyFactory又是在Configuration中持有的
+    //所以每个Mapper接口类对应的MapperProxyFactory和methodCache在整个应用中是共享的，一般只会有一个实例
     private final Map<Method, MapperMethod> methodCache;
 
     public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethod> methodCache) {
@@ -44,9 +50,18 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
         this.methodCache = methodCache;
     }
 
+    /**
+     * 接口代理对象所有的方法调用 都会调用该方法
+     * @param proxy
+     * @param method
+     * @param args
+     * @return
+     * @throws Throwable
+     */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
+            //如果是Object中定义的方法，直接执行。如toString(),hashCode()等
             if (Object.class.equals(method.getDeclaringClass())) {
                 return method.invoke(this, args);
             } else if (isDefaultMethod(method)) {
@@ -55,10 +70,17 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
         } catch (Throwable t) {
             throw ExceptionUtil.unwrapThrowable(t);
         }
+        // 这里进行缓存
         final MapperMethod mapperMethod = cachedMapperMethod(method);
+        //调用 mapperMethod.execute 核心的地方就在这个方法里，这个方法对才是真正对SqlSession进行的包装调用
         return mapperMethod.execute(sqlSession, args);
     }
 
+    /**
+     * 缓存处理
+     * @param method
+     * @return
+     */
     private MapperMethod cachedMapperMethod(Method method) {
         MapperMethod mapperMethod = methodCache.get(method);
         if (mapperMethod == null) {

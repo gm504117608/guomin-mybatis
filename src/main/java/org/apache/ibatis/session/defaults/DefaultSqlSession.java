@@ -167,6 +167,7 @@ public class DefaultSqlSession implements SqlSession {
     public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
         try {
             MappedStatement ms = configuration.getMappedStatement(statement);
+            // CRUD实际上是交给Executor去处理
             executor.query(ms, wrapCollection(parameter), rowBounds, handler);
         } catch (Exception e) {
             throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -287,6 +288,9 @@ public class DefaultSqlSession implements SqlSession {
         return configuration;
     }
 
+    /**
+     * 直接去configuration中找配置的mapper信息
+     */
     @Override
     public <T> T getMapper(Class<T> type) {
         return configuration.<T>getMapper(type, this);

@@ -25,8 +25,8 @@ Essentials
 
 
 学习链接：
-http://blog.csdn.net/luanlouis/article/details/40422941
-http://chenjc-it.iteye.com/
+* http://blog.csdn.net/luanlouis/article/details/40422941
+* http://chenjc-it.iteye.com/
 
 
 

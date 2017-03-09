@@ -23,11 +23,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * 这个类负责创建具体Mapper接口代理对象的工厂类
  * @author Lasse Voss
  */
 public class MapperProxyFactory<T> {
 
+    // 具体Mapper接口的Class对象
     private final Class<T> mapperInterface;
+    // 该接口下面方法的缓存 key是方法对象 value是对接口中方法对象的封装
     private final Map<Method, MapperMethod> methodCache = new ConcurrentHashMap<Method, MapperMethod>();
 
     public MapperProxyFactory(Class<T> mapperInterface) {
@@ -44,11 +47,20 @@ public class MapperProxyFactory<T> {
 
     @SuppressWarnings("unchecked")
     protected T newInstance(MapperProxy<T> mapperProxy) {
+        // mapperInterface，说明Mapper接口被代理了，这样子返回的对象就是Mapper接口的子类，
+        // 所有Mapper接口的方法被调用时都会被MapperProxy拦截,也就是执行MapperProxy.invoke()方法
         return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[]{mapperInterface}, mapperProxy);
     }
 
+    /**
+     * 在这里传入sqlSession 创建一个Mapper接口的代理类
+     * @param sqlSession
+     * @return
+     */
     public T newInstance(SqlSession sqlSession) {
+        //在这里创建了MapperProxy对象 这个类实现了JDK的动态代理接口 InvocationHandler
         final MapperProxy<T> mapperProxy = new MapperProxy<T>(sqlSession, mapperInterface, methodCache);
+        //调用上面的方法 返回一个接口的代理类
         return newInstance(mapperProxy);
     }
 
